@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    .wrapper {
+        position: relative;
+        width: 400px;
+        height: 100px;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .signature-pad {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 400px;
+        height: 100px;
+        background-color: transparent;
+        border: 1px dashed black;
+    }
+</style>
+
+<form asp-action="index" asp-controller="home">
+
+
+    <div class="wrapper">
+        <canvas id="signature-pad" class="signature-pad" width=400 height=100></canvas>
+        <input type="hidden" value='' id="assinatura" name="assinatura" />
+    </div>
+        <input type="color" value="#ffffff" id="color" />
+
+    <div class="btn-group">
+        <button type="submit" class="btn btn-success" id="save-png">Salvar</button>
+        <button type="button" class="btn btn-success" id="undo">Desfazer</button>
+        <button type="button" class="btn btn-success" id="clear">Limpar</button>
+    </div>
+</form>
+
+<img src="@TempData["assinatura"]" alt="" />
+
+
+@section Scripts{
+
+    @*https://github.com/szimek/signature_pad*@
+    <script>
+        var canvas = document.getElementById('signature-pad');
+
+        function resizeCanvas() {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+
+        window.onresize = resizeCanvas;
+        resizeCanvas();
+
+        var signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)',
+            dotSize: 0.1,
+            minWidth: 0.6,
+            maxWidth: 1,
+            velocityFilterWeight: 0,
+            throttle: 0,
+            penColor : 'rgb(0,12,240)'
+
+
+        });
+
+        document.getElementById('color').addEventListener('change', function() {
+            var color = document.getElementById('color').value;
+            signaturePad.penColor = color;            
+        })
+
+
+        document.getElementById('save-png').addEventListener('click', function() {
+            if (signaturePad.isEmpty()) {
+                return alert("Please provide a signature first.");
+            }
+
+            var data = signaturePad.toDataURL('image/png');
+
+            $("#assinatura").val(data);
+
+        });
+
+        document.getElementById('clear').addEventListener('click', function() {
+            signaturePad.clear();
+        });
+
+        document.getElementById('undo').addEventListener('click', function() {
+            var data = signaturePad.toData();
+            if (data) {
+                data.pop(); // remove the last dot or line
+                signaturePad.fromData(data);
+            }
+        });
+
+    </script>
+
+}
